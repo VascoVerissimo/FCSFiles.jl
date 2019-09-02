@@ -90,3 +90,44 @@ function get_endian_func(text_mappings::Dict{String, String})
 
 
 end
+
+
+function metaData(text_mappings::Dict{String, String})
+    nParams = parse(Int64, text_mappings["\$PAR"])
+
+    pParams= String[]
+    for keyword in required_keywords
+        if occursin("n", keyword)
+            push!(pParams, keyword)
+        end
+    end
+    if haskey(text_mappings, "\$P1S") == true
+        push!(pParams, "\$PnS")
+    end
+
+    metaFcs = []
+    s = Vector(1:nParams)
+    metaFcs = vcat(metaFcs, s)
+
+    for params in pParams
+        v = []
+        for i in 1:nParams
+            rParams = replace(params, "n"=>i)
+            val = text_mappings[rParams]
+            v = push!(v, val)
+            return v
+        end
+        metaFcs = hcat(metaFcs, v)
+
+        return metaFcs
+    end
+
+    dfMeta = convert(DataFrame, metaFcs)
+    colNames = ["Channel Number"]
+    for p in pParams
+        push!(colNames, p)
+    end
+    names!(dfMeta, Symbol.(colNames))
+
+    return dfMeta
+end
